@@ -52,15 +52,21 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 1200));
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
     _fadeIn = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
-    _slideUp = Tween<double>(begin: 30, end: 0).animate(
-        CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
+    _slideUp = Tween<double>(
+      begin: 30,
+      end: 0,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
     _ctrl.forward();
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (_) => const HomeScreen()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
       }
     });
   }
@@ -78,7 +84,7 @@ class _SplashScreenState extends State<SplashScreen>
       body: Center(
         child: AnimatedBuilder(
           animation: _ctrl,
-          builder: (_, __) => Opacity(
+          builder: (_, _) => Opacity(
             opacity: _fadeIn.value,
             child: Transform.translate(
               offset: Offset(0, _slideUp.value),
@@ -92,27 +98,36 @@ class _SplashScreenState extends State<SplashScreen>
                       color: Colors.white.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                          color: Colors.white.withOpacity(0.2), width: 1),
+                        color: Colors.white.withOpacity(0.2),
+                        width: 1,
+                      ),
                     ),
-                    child: const Icon(Icons.verified_user_rounded,
-                        color: Colors.white, size: 48),
+                    child: const Icon(
+                      Icons.verified_user_rounded,
+                      color: Colors.white,
+                      size: 48,
+                    ),
                   ),
                   const SizedBox(height: 28),
-                  const Text('SIROS',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 36,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 8,
-                      )),
+                  const Text(
+                    'SIROS',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 36,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 8,
+                    ),
+                  ),
                   const SizedBox(height: 6),
-                  Text('VERIFIER',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.5),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w400,
-                        letterSpacing: 6,
-                      )),
+                  Text(
+                    'VERIFIER',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.5),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 6,
+                    ),
+                  ),
                   const SizedBox(height: 64),
                   SizedBox(
                     width: 24,
@@ -155,23 +170,32 @@ class HomeScreen extends StatelessWidget {
                       color: Colors.white.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.verified_user_rounded,
-                        color: Colors.white, size: 20),
+                    child: const Icon(
+                      Icons.verified_user_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('SIROS VERIFIER',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 2)),
-                      Text('ISO 18013-5 mDL',
-                          style: TextStyle(
-                              color: Colors.white.withOpacity(0.5),
-                              fontSize: 11)),
+                      const Text(
+                        'SIROS VERIFIER',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                      Text(
+                        'ISO 18013-5 mDL',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.5),
+                          fontSize: 11,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -191,24 +215,30 @@ class HomeScreen extends StatelessWidget {
                           color: const Color(0xFF0A2540).withOpacity(0.06),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.qr_code_scanner_rounded,
-                            size: 56, color: Color(0xFF0A2540)),
+                        child: const Icon(
+                          Icons.qr_code_scanner_rounded,
+                          size: 56,
+                          color: Color(0xFF0A2540),
+                        ),
                       ),
                       const SizedBox(height: 28),
-                      const Text('Verify a driving licence',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF0A2540),
-                          )),
+                      const Text(
+                        'Verify a driving licence',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF0A2540),
+                        ),
+                      ),
                       const SizedBox(height: 10),
                       Text(
                         'Scan the QR code displayed on the\nholder\'s device to begin verification.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                            height: 1.5),
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                          height: 1.5,
+                        ),
                       ),
                       const SizedBox(height: 40),
                       SizedBox(
@@ -216,20 +246,27 @@ class HomeScreen extends StatelessWidget {
                         height: 52,
                         child: ElevatedButton.icon(
                           icon: const Icon(Icons.qr_code_rounded, size: 20),
-                          label: const Text('Scan QR Code',
-                              style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600)),
+                          label: const Text(
+                            'Scan QR Code',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF0A2540),
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14)),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
                             elevation: 0,
                           ),
-                          onPressed: () => Navigator.push(context,
-                              MaterialPageRoute(
-                                  builder: (_) => const ScanScreen())),
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ScanScreen(),
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -239,9 +276,10 @@ class HomeScreen extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.only(bottom: 20),
-              child: Text('Secure · Privacy-preserving · ISO compliant',
-                  style:
-                  TextStyle(fontSize: 11, color: Colors.grey[400])),
+              child: Text(
+                'Secure · Privacy-preserving · ISO compliant',
+                style: TextStyle(fontSize: 11, color: Colors.grey[400]),
+              ),
             ),
           ],
         ),
@@ -286,9 +324,12 @@ class _ScanScreenState extends State<ScanScreen> {
     _controller.stop();
     final b64 = value.substring(5);
     final deBytes = base64Url.decode(base64Url.normalize(b64));
-    Navigator.pushReplacement(context, MaterialPageRoute(
-      builder: (_) => ConnectScreen(deBytes: Uint8List.fromList(deBytes)),
-    ));
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ConnectScreen(deBytes: Uint8List.fromList(deBytes)),
+      ),
+    );
   }
 
   @override
@@ -298,8 +339,10 @@ class _ScanScreenState extends State<ScanScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0A2540),
         foregroundColor: Colors.white,
-        title: const Text('Scan QR Code',
-            style: TextStyle(fontWeight: FontWeight.w600)),
+        title: const Text(
+          'Scan QR Code',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         elevation: 0,
       ),
       body: Stack(
@@ -319,10 +362,14 @@ class _ScanScreenState extends State<ScanScreen> {
             bottom: 48,
             left: 0,
             right: 0,
-            child: Text('Point at the mDL QR code',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    color: Colors.white.withOpacity(0.8), fontSize: 14)),
+            child: Text(
+              'Point at the mDL QR code',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 14,
+              ),
+            ),
           ),
         ],
       ),
@@ -385,7 +432,9 @@ class _ConnectScreenState extends State<ConnectScreen> {
     try {
       _setStatus('Reading QR code', 'Parsing device engagement...');
       _targetUuid = extractUuid(widget.deBytes);
-      debugPrint('deBytes: ${widget.deBytes.map((b) => b.toRadixString(16).padLeft(2,'0')).join()}');
+      debugPrint(
+        'deBytes: ${widget.deBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}',
+      );
       final eDeviceKeyBytes = extractEDeviceKey(widget.deBytes);
 
       _setStatus('Generating keys', 'Creating ephemeral reader key...');
@@ -394,26 +443,31 @@ class _ConnectScreenState extends State<ConnectScreen> {
       final rng = pc.FortunaRandom();
       final seedSource = Random.secure();
       final seed = Uint8List(32);
-      for (var i = 0; i < 32; i++) seed[i] = seedSource.nextInt(256);
+      for (var i = 0; i < 32; i++) {
+        seed[i] = seedSource.nextInt(256);
+      }
       rng.seed(pc.KeyParameter(seed));
-      keyGen.init(pc.ParametersWithRandom(
-          pc.ECKeyGeneratorParameters(domainParams), rng));
+      keyGen.init(
+        pc.ParametersWithRandom(pc.ECKeyGeneratorParameters(domainParams), rng),
+      );
       final keyPair = keyGen.generateKeyPair();
       final eReaderPrivKey = keyPair.privateKey as pc.ECPrivateKey;
       final eReaderPubKey = keyPair.publicKey as pc.ECPublicKey;
-      final eReaderPubKeyBytes =
-      Uint8List.fromList(eReaderPubKey.Q!.getEncoded(false));
+      final eReaderPubKeyBytes = Uint8List.fromList(
+        eReaderPubKey.Q!.getEncoded(false),
+      );
 
       final eReaderKeyCose = buildCoseKey(eReaderPubKeyBytes);
-      final sessionTranscript =
-      buildSessionTranscript(widget.deBytes, eReaderKeyCose);
-      final sharedSecret =
-      ecdhSharedSecret(eReaderPrivKey, eDeviceKeyBytes);
+      final sessionTranscript = buildSessionTranscript(
+        widget.deBytes,
+        eReaderKeyCose,
+      );
+      final sharedSecret = ecdhSharedSecret(eReaderPrivKey, eDeviceKeyBytes);
       final skReader = deriveSKReader(sharedSecret, sessionTranscript);
       final deviceRequest = buildDeviceRequest();
-      debugPrint('sessionTranscript: ${sessionTranscript.map((b) => b.toRadixString(16).padLeft(2,'0')).join()}');
-
-
+      debugPrint(
+        'sessionTranscript: ${sessionTranscript.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}',
+      );
 
       // Encrypt with SKReader - reader role identifier=0, counter=1
       final iv = Uint8List(12);
@@ -422,31 +476,45 @@ class _ConnectScreenState extends State<ConnectScreen> {
       final encryptedRequest = aesGcmEncrypt(skReader, iv, deviceRequest);
 
       // SessionEstablishment with string keys matching multipaz format
-      final sessionEstablishment =
-      buildSessionEstablishment(eReaderKeyCose, encryptedRequest);
-      debugPrint('SE hex: ${sessionEstablishment.map((b) => b.toRadixString(16).padLeft(2,'0')).join()}');
+      final sessionEstablishment = buildSessionEstablishment(
+        eReaderKeyCose,
+        encryptedRequest,
+      );
+      debugPrint(
+        'SE hex: ${sessionEstablishment.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}',
+      );
 
-      debugPrint('eReaderKeyCose: ${eReaderKeyCose.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}');
+      debugPrint(
+        'eReaderKeyCose: ${eReaderKeyCose.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}',
+      );
 
       _setStatus('Advertising', 'Waiting for holder\'s device...');
 
-      debugPrint('sharedSecret: ${sharedSecret.map((b) => b.toRadixString(16).padLeft(2,'0')).join()}');
-      debugPrint('salt: ${saltFromTranscript(sessionTranscript).map((b) => b.toRadixString(16).padLeft(2,'0')).join()}');
-      debugPrint('SKReader: ${skReader.map((b) => b.toRadixString(16).padLeft(2,'0')).join()}');
-      debugPrint('IV: ${iv.map((b) => b.toRadixString(16).padLeft(2,'0')).join()}');
-      debugPrint('encryptedRequest first 32: ${encryptedRequest.sublist(0,32).map((b) => b.toRadixString(16).padLeft(2,'0')).join()}');
-
-      await _platform.invokeMethod<String>(
-        'advertiseAndWait',
-        {
-          'uuid': _targetUuid,
-          'eReaderKeyCose': eReaderKeyCose,
-        },
-      ).timeout(
-        const Duration(seconds: 60),
-        onTimeout: () =>
-        throw Exception('Holder did not connect in time'),
+      debugPrint(
+        'sharedSecret: ${sharedSecret.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}',
       );
+      debugPrint(
+        'salt: ${saltFromTranscript(sessionTranscript).map((b) => b.toRadixString(16).padLeft(2, '0')).join()}',
+      );
+      debugPrint(
+        'SKReader: ${skReader.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}',
+      );
+      debugPrint(
+        'IV: ${iv.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}',
+      );
+      debugPrint(
+        'encryptedRequest first 32: ${encryptedRequest.sublist(0, 32).map((b) => b.toRadixString(16).padLeft(2, '0')).join()}',
+      );
+
+      await _platform
+          .invokeMethod<String>('advertiseAndWait', {
+            'uuid': _targetUuid,
+            'eReaderKeyCose': eReaderKeyCose,
+          })
+          .timeout(
+            const Duration(seconds: 60),
+            onTimeout: () => throw Exception('Holder did not connect in time'),
+          );
 
       _setStatus('Connected', 'Sending credential request...');
       await _platform.invokeMethod('sendData', {'data': sessionEstablishment});
@@ -454,12 +522,12 @@ class _ConnectScreenState extends State<ConnectScreen> {
       await Future.delayed(const Duration(milliseconds: 200));
 
       _setStatus('Waiting', 'Receiving credential data...');
-      final response = await _platform.invokeMethod<Uint8List>(
-        'waitForResponse',
-      ).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () => throw Exception('No response from holder'),
-      );
+      final response = await _platform
+          .invokeMethod<Uint8List>('waitForResponse')
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () => throw Exception('No response from holder'),
+          );
 
       if (response != null && response.isNotEmpty) {
         _setStatus('Decrypting', 'Verifying credential...');
@@ -467,25 +535,26 @@ class _ConnectScreenState extends State<ConnectScreen> {
         try {
           final sessionDataMap = cbor.decode(response) as CborMap;
           final encryptedData = Uint8List.fromList(
-              (sessionDataMap[CborString('data')] as CborBytes).bytes);
+            (sessionDataMap[CborString('data')] as CborBytes).bytes,
+          );
 
           final skDevice = deriveSKDevice(sharedSecret, sessionTranscript);
 
           final ivCombinations = [
-            [0, 0], [0, 1], [1, 0], [1, 1],
+            [0, 0],
+            [0, 1],
+            [1, 0],
+            [1, 1],
           ];
 
           Uint8List? plain;
           for (final combo in ivCombinations) {
             try {
               final ivDev = Uint8List(12);
-              ByteData.view(ivDev.buffer)
-                  .setUint32(4, combo[0], Endian.big);
-              ByteData.view(ivDev.buffer)
-                  .setUint32(8, combo[1], Endian.big);
+              ByteData.view(ivDev.buffer).setUint32(4, combo[0], Endian.big);
+              ByteData.view(ivDev.buffer).setUint32(8, combo[1], Endian.big);
               plain = aesGcmDecrypt(skDevice, ivDev, encryptedData);
-              debugPrint(
-                  '✅ Decrypted id=${combo[0]} counter=${combo[1]}');
+              debugPrint('✅ Decrypted id=${combo[0]} counter=${combo[1]}');
               break;
             } catch (_) {}
           }
@@ -503,13 +572,13 @@ class _ConnectScreenState extends State<ConnectScreen> {
           if (mounted) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(
-                  builder: (_) => ResultScreen(fields: fields)),
+              MaterialPageRoute(builder: (_) => ResultScreen(fields: fields)),
             );
           }
         } catch (e) {
           _setError(
-              'Parse error — please try again.\n${e.toString().replaceFirst('Exception: ', '')}');
+            'Parse error — please try again.\n${e.toString().replaceFirst('Exception: ', '')}',
+          );
         }
       } else {
         _setError('Empty response — please try again');
@@ -526,8 +595,10 @@ class _ConnectScreenState extends State<ConnectScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0A2540),
         foregroundColor: Colors.white,
-        title: const Text('Verifying',
-            style: TextStyle(fontWeight: FontWeight.w600)),
+        title: const Text(
+          'Verifying',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         elevation: 0,
         automaticallyImplyLeading: false,
       ),
@@ -547,32 +618,38 @@ class _ConnectScreenState extends State<ConnectScreen> {
                   shape: BoxShape.circle,
                 ),
                 child: _isError
-                    ? const Icon(Icons.error_outline_rounded,
-                    color: Colors.red, size: 40)
+                    ? const Icon(
+                        Icons.error_outline_rounded,
+                        color: Colors.red,
+                        size: 40,
+                      )
                     : const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: CircularProgressIndicator(
-                      strokeWidth: 3,
-                      color: Color(0xFF0A2540)),
-                ),
+                        padding: EdgeInsets.all(20),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          color: Color(0xFF0A2540),
+                        ),
+                      ),
               ),
               const SizedBox(height: 28),
-              Text(_status,
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: _isError
-                          ? Colors.red
-                          : const Color(0xFF0A2540))),
+              Text(
+                _status,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: _isError ? Colors.red : const Color(0xFF0A2540),
+                ),
+              ),
               if (_substatus.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                Text(_substatus,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontSize: 14,
-                        color: _isError
-                            ? Colors.red[300]
-                            : Colors.grey[500])),
+                Text(
+                  _substatus,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: _isError ? Colors.red[300] : Colors.grey[500],
+                  ),
+                ),
               ],
               const SizedBox(height: 40),
               if (_isError)
@@ -582,17 +659,19 @@ class _ConnectScreenState extends State<ConnectScreen> {
                   child: ElevatedButton(
                     onPressed: () => Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(
-                          builder: (_) => const HomeScreen()),
+                      MaterialPageRoute(builder: (_) => const HomeScreen()),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0A2540),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                    child: const Text('Try Again',
-                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    child: const Text(
+                      'Try Again',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
                   ),
                 )
               else
@@ -602,13 +681,14 @@ class _ConnectScreenState extends State<ConnectScreen> {
                     if (mounted) {
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(
-                            builder: (_) => const HomeScreen()),
+                        MaterialPageRoute(builder: (_) => const HomeScreen()),
                       );
                     }
                   },
-                  child: Text('Cancel',
-                      style: TextStyle(color: Colors.grey[500])),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.grey[500]),
+                  ),
                 ),
             ],
           ),
@@ -652,10 +732,11 @@ class ResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final display = Map.fromEntries(fields.entries.where((e) =>
-    e.key != 'portrait' &&
-        e.value.isNotEmpty &&
-        e.value != 'null'));
+    final display = Map.fromEntries(
+      fields.entries.where(
+        (e) => e.key != 'portrait' && e.value.isNotEmpty && e.value != 'null',
+      ),
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -668,25 +749,30 @@ class ResultScreen extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_rounded,
-                        color: Colors.white),
+                    icon: const Icon(
+                      Icons.arrow_back_rounded,
+                      color: Colors.white,
+                    ),
                     onPressed: () => Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(
-                          builder: (_) => const HomeScreen()),
+                      MaterialPageRoute(builder: (_) => const HomeScreen()),
                     ),
                   ),
                   const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Verification Result',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700)),
-                      Text('Mobile Driving Licence',
-                          style: TextStyle(
-                              color: Colors.white54, fontSize: 11)),
+                      Text(
+                        'Verification Result',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        'Mobile Driving Licence',
+                        style: TextStyle(color: Colors.white54, fontSize: 11),
+                      ),
                     ],
                   ),
                 ],
@@ -724,23 +810,32 @@ class ResultScreen extends StatelessWidget {
                               color: Colors.white.withOpacity(0.2),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.check_circle_rounded,
-                                color: Colors.white, size: 28),
+                            child: const Icon(
+                              Icons.check_circle_rounded,
+                              color: Colors.white,
+                              size: 28,
+                            ),
                           ),
                           const SizedBox(width: 16),
                           const Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Credential Verified',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700)),
+                              Text(
+                                'Credential Verified',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                               SizedBox(height: 2),
-                              Text('ISO 18013-5 mDL · Proximity',
-                                  style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 12)),
+                              Text(
+                                'ISO 18013-5 mDL · Proximity',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ],
                           ),
                         ],
@@ -767,65 +862,80 @@ class ResultScreen extends StatelessWidget {
                             padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                             child: Row(
                               children: [
-                                const Icon(Icons.credit_card_rounded,
-                                    size: 16, color: Color(0xFF0A2540)),
+                                const Icon(
+                                  Icons.credit_card_rounded,
+                                  size: 16,
+                                  color: Color(0xFF0A2540),
+                                ),
                                 const SizedBox(width: 8),
-                                Text('Identity Claims',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.grey[600],
-                                        letterSpacing: 0.5)),
+                                Text(
+                                  'Identity Claims',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey[600],
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                           const Divider(height: 1),
                           ...display.entries.map((e) {
-                            final label = _labels[e.key] ??
-                                e.key.replaceAll('_', ' ');
-                            final icon = _icons[e.key] ??
-                                Icons.info_outline_rounded;
+                            final label =
+                                _labels[e.key] ?? e.key.replaceAll('_', ' ');
+                            final icon =
+                                _icons[e.key] ?? Icons.info_outline_rounded;
                             final isLast = e.key == display.keys.last;
                             return Column(
                               children: [
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 14),
+                                    horizontal: 20,
+                                    vertical: 14,
+                                  ),
                                   child: Row(
                                     children: [
                                       Container(
                                         width: 36,
                                         height: 36,
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF0A2540)
-                                              .withOpacity(0.06),
-                                          borderRadius:
-                                          BorderRadius.circular(10),
+                                          color: const Color(
+                                            0xFF0A2540,
+                                          ).withOpacity(0.06),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                         ),
-                                        child: Icon(icon,
-                                            size: 18,
-                                            color: const Color(0xFF0A2540)),
+                                        child: Icon(
+                                          icon,
+                                          size: 18,
+                                          color: const Color(0xFF0A2540),
+                                        ),
                                       ),
                                       const SizedBox(width: 14),
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                              CrossAxisAlignment.start,
                                           children: [
-                                            Text(label,
-                                                style: TextStyle(
-                                                    fontSize: 11,
-                                                    color: Colors.grey[500],
-                                                    fontWeight:
-                                                    FontWeight.w500)),
+                                            Text(
+                                              label,
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: Colors.grey[500],
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
                                             const SizedBox(height: 2),
-                                            Text(e.value,
-                                                style: const TextStyle(
-                                                    fontSize: 15,
-                                                    fontWeight:
-                                                    FontWeight.w600,
-                                                    color:
-                                                    Color(0xFF0A2540))),
+                                            Text(
+                                              e.value,
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w600,
+                                                color: Color(0xFF0A2540),
+                                              ),
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -850,24 +960,28 @@ class ResultScreen extends StatelessWidget {
                           backgroundColor: const Color(0xFF0A2540),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                           elevation: 0,
                         ),
                         onPressed: () => Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(
-                              builder: (_) => const HomeScreen()),
+                          MaterialPageRoute(builder: (_) => const HomeScreen()),
                         ),
-                        child: const Text('Done',
-                            style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600)),
+                        child: const Text(
+                          'Done',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text('Verified at ${_now()}',
-                        style: TextStyle(
-                            fontSize: 11, color: Colors.grey[400])),
+                    Text(
+                      'Verified at ${_now()}',
+                      style: TextStyle(fontSize: 11, color: Colors.grey[400]),
+                    ),
                     const SizedBox(height: 8),
                   ],
                 ),

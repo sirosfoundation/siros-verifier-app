@@ -4,19 +4,23 @@ import 'crypto.dart';
 
 /// Build a DeviceRequest for mDL attributes (given_name, family_name, etc.).
 Uint8List buildDeviceRequest() {
-  final itemsRequestBytes = Uint8List.fromList(cbor.encode(CborMap({
-    CborString('docType'): CborString('org.iso.18013.5.1.mDL'),
-    CborString('nameSpaces'): CborMap({
-      CborString('org.iso.18013.5.1'): CborMap({
-        CborString('given_name'): const CborBool(false),
-        CborString('family_name'): const CborBool(false),
-        CborString('birth_date'): const CborBool(false),
-        CborString('document_number'): const CborBool(false),
-        CborString('issuing_country'): const CborBool(false),
-        CborString('expiry_date'): const CborBool(false),
+  final itemsRequestBytes = Uint8List.fromList(
+    cbor.encode(
+      CborMap({
+        CborString('docType'): CborString('org.iso.18013.5.1.mDL'),
+        CborString('nameSpaces'): CborMap({
+          CborString('org.iso.18013.5.1'): CborMap({
+            CborString('given_name'): const CborBool(false),
+            CborString('family_name'): const CborBool(false),
+            CborString('birth_date'): const CborBool(false),
+            CborString('document_number'): const CborBool(false),
+            CborString('issuing_country'): const CborBool(false),
+            CborString('expiry_date'): const CborBool(false),
+          }),
+        }),
       }),
-    }),
-  })));
+    ),
+  );
   final docRequest = CborMap({
     CborString('itemsRequest'): CborBytes(itemsRequestBytes, tags: [24]),
   });
@@ -30,7 +34,9 @@ Uint8List buildDeviceRequest() {
 /// Build SessionEstablishment CBOR:
 /// {"eReaderKey": #6.24(eReaderKeyCose), "data": encryptedRequest}
 Uint8List buildSessionEstablishment(
-    Uint8List eReaderKeyCose, Uint8List encryptedRequest) {
+  Uint8List eReaderKeyCose,
+  Uint8List encryptedRequest,
+) {
   final se = CborMap({
     CborString('eReaderKey'): CborBytes(eReaderKeyCose, tags: [24]),
     CborString('data'): CborBytes(encryptedRequest),
@@ -51,8 +57,7 @@ String extractUuid(Uint8List deBytes) {
         for (final key in [10, 11]) {
           final uuidItem = options[CborSmallInt(key)];
           if (uuidItem != null) {
-            final uuidBytes =
-                Uint8List.fromList((uuidItem as CborBytes).bytes);
+            final uuidBytes = Uint8List.fromList((uuidItem as CborBytes).bytes);
             final h = uuidBytes
                 .map((b) => b.toRadixString(16).padLeft(2, '0'))
                 .join();
@@ -76,38 +81,35 @@ String extractUuid(Uint8List deBytes) {
 Uint8List extractEDeviceKey(Uint8List deBytes) {
   final decoded = cbor.decode(deBytes) as CborMap;
   final security = decoded[const CborSmallInt(1)] as CborList;
-  final coseKeyBytes =
-      Uint8List.fromList((security[1] as CborBytes).bytes);
+  final coseKeyBytes = Uint8List.fromList((security[1] as CborBytes).bytes);
   final coseKey = cbor.decode(coseKeyBytes) as CborMap;
-  final x = Uint8List.fromList(
-      (coseKey[CborSmallInt(-2)] as CborBytes).bytes);
-  final y = Uint8List.fromList(
-      (coseKey[CborSmallInt(-3)] as CborBytes).bytes);
-  return concat([Uint8List.fromList([0x04]), x, y]);
+  final x = Uint8List.fromList((coseKey[CborSmallInt(-2)] as CborBytes).bytes);
+  final y = Uint8List.fromList((coseKey[CborSmallInt(-3)] as CborBytes).bytes);
+  return concat([
+    Uint8List.fromList([0x04]),
+    x,
+    y,
+  ]);
 }
 
 /// Parse credential fields from a decrypted DeviceResponse.
 Map<String, String> parseCredentials(Uint8List decrypted) {
   final fields = <String, String>{};
   final deviceResponse = cbor.decode(decrypted) as CborMap;
-  final documents =
-      deviceResponse[CborString('documents')] as CborList?;
-  if (documents == null) return fields;
+  final rawDocuments = deviceResponse[CborString('documents')];
+  if (rawDocuments == null || rawDocuments is! CborList) return fields;
+  final documents = rawDocuments;
   for (final doc in documents) {
     final docMap = doc as CborMap;
-    final issuerSigned =
-        docMap[CborString('issuerSigned')] as CborMap?;
-    final nameSpaces =
-        issuerSigned?[CborString('nameSpaces')] as CborMap?;
+    final issuerSigned = docMap[CborString('issuerSigned')] as CborMap?;
+    final nameSpaces = issuerSigned?[CborString('nameSpaces')] as CborMap?;
     nameSpaces?.entries.forEach((ns) {
       final items = ns.value as CborList?;
       items?.forEach((item) {
         try {
           final itemBytes = (item as CborBytes).bytes;
-          final itemMap =
-              cbor.decode(Uint8List.fromList(itemBytes)) as CborMap;
-          final key =
-              itemMap[CborString('elementIdentifier')].toString();
+          final itemMap = cbor.decode(Uint8List.fromList(itemBytes)) as CborMap;
+          final key = itemMap[CborString('elementIdentifier')].toString();
           final value = itemMap[CborString('elementValue')];
           fields[key] = value.toString();
         } catch (_) {}

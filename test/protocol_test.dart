@@ -12,10 +12,11 @@ Uint8List _buildDeviceEngagement(Uint8List uuid, {int uuidKey = 11}) {
     x[i] = i;
     y[i] = 32 + i;
   }
-  final coseKeyBytes = Uint8List.fromList(cbor.encode(CborMap({
-    CborSmallInt(-2): CborBytes(x),
-    CborSmallInt(-3): CborBytes(y),
-  })));
+  final coseKeyBytes = Uint8List.fromList(
+    cbor.encode(
+      CborMap({CborSmallInt(-2): CborBytes(x), CborSmallInt(-3): CborBytes(y)}),
+    ),
+  );
 
   final de = CborMap({
     // key 1: security = [cipherSuiteId, coseKeyBytes]
@@ -40,11 +41,22 @@ void main() {
     test('extracts UUID from key 11 (peripheral server)', () {
       // 16-byte UUID
       final uuid = Uint8List.fromList([
-        0x12, 0x34, 0x56, 0x78,
-        0x9a, 0xbc,
-        0xde, 0xf0,
-        0x12, 0x34,
-        0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0,
+        0x12,
+        0x34,
+        0x56,
+        0x78,
+        0x9a,
+        0xbc,
+        0xde,
+        0xf0,
+        0x12,
+        0x34,
+        0x56,
+        0x78,
+        0x9a,
+        0xbc,
+        0xde,
+        0xf0,
       ]);
       final de = _buildDeviceEngagement(uuid, uuidKey: 11);
       final result = extractUuid(de);
@@ -60,12 +72,16 @@ void main() {
     });
 
     test('throws on missing connection methods', () {
-      final de = Uint8List.fromList(cbor.encode(CborMap({
-        const CborSmallInt(1): CborList([
-          const CborSmallInt(1),
-          CborBytes(Uint8List(10)),
-        ]),
-      })));
+      final de = Uint8List.fromList(
+        cbor.encode(
+          CborMap({
+            const CborSmallInt(1): CborList([
+              const CborSmallInt(1),
+              CborBytes(Uint8List(10)),
+            ]),
+          }),
+        ),
+      );
       expect(() => extractUuid(de), throwsException);
     });
 
@@ -115,8 +131,10 @@ void main() {
       // The itemsRequest is tag 24 wrapping CBOR bytes
       final itemsBytes = (itemsRequestTag as CborBytes).bytes;
       final itemsMap = cbor.decode(Uint8List.fromList(itemsBytes)) as CborMap;
-      expect(itemsMap[CborString('docType')].toString(),
-          equals('org.iso.18013.5.1.mDL'));
+      expect(
+        itemsMap[CborString('docType')].toString(),
+        equals('org.iso.18013.5.1.mDL'),
+      );
     });
 
     test('requests expected attributes', () {
@@ -139,8 +157,11 @@ void main() {
         'expiry_date',
       ];
       for (final attr in expectedAttrs) {
-        expect(mdlNs[CborString(attr)], isNotNull,
-            reason: 'Missing attribute: $attr');
+        expect(
+          mdlNs[CborString(attr)],
+          isNotNull,
+          reason: 'Missing attribute: $attr',
+        );
       }
     });
   });
@@ -168,17 +189,13 @@ void main() {
 
   group('parseCredentials', () {
     test('returns empty map when no documents', () {
-      final response = CborMap({
-        CborString('version'): CborString('1.0'),
-      });
+      final response = CborMap({CborString('version'): CborString('1.0')});
       final bytes = Uint8List.fromList(cbor.encode(response));
       expect(parseCredentials(bytes), isEmpty);
     });
 
     test('returns empty map with null documents', () {
-      final response = CborMap({
-        CborString('documents'): const CborNull(),
-      });
+      final response = CborMap({CborString('documents'): const CborNull()});
       final bytes = Uint8List.fromList(cbor.encode(response));
       // CborNull cast to CborList will throw, but parseCredentials
       // checks for null
@@ -187,14 +204,22 @@ void main() {
 
     test('parses credential fields from valid response', () {
       // Build a minimal DeviceResponse with one document
-      final item1Bytes = Uint8List.fromList(cbor.encode(CborMap({
-        CborString('elementIdentifier'): CborString('given_name'),
-        CborString('elementValue'): CborString('Alice'),
-      })));
-      final item2Bytes = Uint8List.fromList(cbor.encode(CborMap({
-        CborString('elementIdentifier'): CborString('family_name'),
-        CborString('elementValue'): CborString('Smith'),
-      })));
+      final item1Bytes = Uint8List.fromList(
+        cbor.encode(
+          CborMap({
+            CborString('elementIdentifier'): CborString('given_name'),
+            CborString('elementValue'): CborString('Alice'),
+          }),
+        ),
+      );
+      final item2Bytes = Uint8List.fromList(
+        cbor.encode(
+          CborMap({
+            CborString('elementIdentifier'): CborString('family_name'),
+            CborString('elementValue'): CborString('Smith'),
+          }),
+        ),
+      );
 
       final response = CborMap({
         CborString('documents'): CborList([
@@ -218,10 +243,14 @@ void main() {
     });
 
     test('handles malformed items gracefully', () {
-      final goodItem = Uint8List.fromList(cbor.encode(CborMap({
-        CborString('elementIdentifier'): CborString('birth_date'),
-        CborString('elementValue'): CborString('1990-01-01'),
-      })));
+      final goodItem = Uint8List.fromList(
+        cbor.encode(
+          CborMap({
+            CborString('elementIdentifier'): CborString('birth_date'),
+            CborString('elementValue'): CborString('1990-01-01'),
+          }),
+        ),
+      );
       // Bad item: not a valid CBOR map with expected keys
       final badItem = Uint8List.fromList([0x00, 0x01]);
 
@@ -248,23 +277,29 @@ void main() {
     });
 
     test('handles multiple namespaces', () {
-      final item1 = Uint8List.fromList(cbor.encode(CborMap({
-        CborString('elementIdentifier'): CborString('given_name'),
-        CborString('elementValue'): CborString('Bob'),
-      })));
-      final item2 = Uint8List.fromList(cbor.encode(CborMap({
-        CborString('elementIdentifier'): CborString('vehicle_class'),
-        CborString('elementValue'): CborString('B'),
-      })));
+      final item1 = Uint8List.fromList(
+        cbor.encode(
+          CborMap({
+            CborString('elementIdentifier'): CborString('given_name'),
+            CborString('elementValue'): CborString('Bob'),
+          }),
+        ),
+      );
+      final item2 = Uint8List.fromList(
+        cbor.encode(
+          CborMap({
+            CborString('elementIdentifier'): CborString('vehicle_class'),
+            CborString('elementValue'): CborString('B'),
+          }),
+        ),
+      );
 
       final response = CborMap({
         CborString('documents'): CborList([
           CborMap({
             CborString('issuerSigned'): CborMap({
               CborString('nameSpaces'): CborMap({
-                CborString('org.iso.18013.5.1'): CborList([
-                  CborBytes(item1),
-                ]),
+                CborString('org.iso.18013.5.1'): CborList([CborBytes(item1)]),
                 CborString('org.iso.18013.5.1.aamva'): CborList([
                   CborBytes(item2),
                 ]),
