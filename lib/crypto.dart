@@ -17,16 +17,18 @@ Uint8List concat(List<Uint8List> arrays) {
 /// Encode bytes as a CBOR byte string (major type 2).
 Uint8List cborBstr(Uint8List bytes) {
   final len = bytes.length;
-  if (len < 24)
+  if (len < 24) {
     return concat([
       Uint8List.fromList([0x40 | len]),
       bytes,
     ]);
-  if (len < 256)
+  }
+  if (len < 256) {
     return concat([
       Uint8List.fromList([0x58, len]),
       bytes,
     ]);
+  }
   if (len < 65536) {
     return concat([
       Uint8List.fromList([0x59, len >> 8, len & 0xff]),
