@@ -39,22 +39,26 @@ void main() {
       await tester.pumpWidget(const MaterialApp(home: SplashScreen()));
       expect(find.text('SIROS'), findsOneWidget);
       expect(find.text('VERIFIER'), findsOneWidget);
+      await tester.pumpAndSettle(const Duration(seconds: 3));
     });
 
     testWidgets('shows progress indicator', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: SplashScreen()));
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      await tester.pumpAndSettle(const Duration(seconds: 3));
     });
 
     testWidgets('has dark background', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: SplashScreen()));
       final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
       expect(scaffold.backgroundColor, equals(const Color(0xFF0A2540)));
+      await tester.pumpAndSettle(const Duration(seconds: 3));
     });
 
     testWidgets('displays verified_user icon', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: SplashScreen()));
       expect(find.byIcon(Icons.verified_user_rounded), findsOneWidget);
+      await tester.pumpAndSettle(const Duration(seconds: 3));
     });
 
     testWidgets('navigates to HomeScreen after delay', (tester) async {
