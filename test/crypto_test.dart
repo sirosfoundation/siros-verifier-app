@@ -20,8 +20,7 @@ void main() {
       final a = Uint8List.fromList([1, 2]);
       final b = Uint8List.fromList([3, 4, 5]);
       final c = Uint8List.fromList([6]);
-      expect(
-          concat([a, b, c]), equals(Uint8List.fromList([1, 2, 3, 4, 5, 6])));
+      expect(concat([a, b, c]), equals(Uint8List.fromList([1, 2, 3, 4, 5, 6])));
     });
   });
 
@@ -119,8 +118,12 @@ void main() {
       // 04 || 32-byte x || 32-byte y
       final pubKey = Uint8List(65);
       pubKey[0] = 0x04;
-      for (var i = 1; i <= 32; i++) pubKey[i] = i;
-      for (var i = 33; i <= 64; i++) pubKey[i] = i;
+      for (var i = 1; i <= 32; i++) {
+        pubKey[i] = i;
+      }
+      for (var i = 33; i <= 64; i++) {
+        pubKey[i] = i;
+      }
 
       final result = buildCoseKey(pubKey);
 
@@ -188,7 +191,9 @@ void main() {
 
     test('deterministic — same inputs produce same output', () {
       final ikm = Uint8List.fromList(utf8.encode('input'));
-      final salt = Uint8List.fromList(utf8.encode('salt-value-32-bytes-padded!!!!!'));
+      final salt = Uint8List.fromList(
+        utf8.encode('salt-value-32-bytes-padded!!!!!'),
+      );
       final info = Uint8List.fromList(utf8.encode('info'));
       expect(hkdf(ikm, salt, info, 32), equals(hkdf(ikm, salt, info, 32)));
     });
@@ -198,7 +203,10 @@ void main() {
       final salt = Uint8List(32);
       final info1 = Uint8List.fromList(utf8.encode('SKReader'));
       final info2 = Uint8List.fromList(utf8.encode('SKDevice'));
-      expect(hkdf(ikm, salt, info1, 32), isNot(equals(hkdf(ikm, salt, info2, 32))));
+      expect(
+        hkdf(ikm, salt, info1, 32),
+        isNot(equals(hkdf(ikm, salt, info2, 32))),
+      );
     });
   });
 
@@ -211,8 +219,7 @@ void main() {
     });
 
     test('SKReader and SKDevice are different', () {
-      final secret = Uint8List.fromList(
-          List.generate(32, (i) => i));
+      final secret = Uint8List.fromList(List.generate(32, (i) => i));
       final transcript = Uint8List.fromList([0x83, 0xf6, 0xf6, 0xf6]);
       final skReader = deriveSKReader(secret, transcript);
       final skDevice = deriveSKDevice(secret, transcript);
@@ -223,7 +230,9 @@ void main() {
   group('AES-GCM encrypt/decrypt', () {
     test('round-trip: decrypt(encrypt(m)) == m', () {
       final key = Uint8List(32);
-      for (var i = 0; i < 32; i++) key[i] = i;
+      for (var i = 0; i < 32; i++) {
+        key[i] = i;
+      }
       final iv = Uint8List(12);
       final plaintext = Uint8List.fromList(utf8.encode('hello world'));
 
@@ -270,19 +279,22 @@ void main() {
       final rng = pc.FortunaRandom();
       final seed = Uint8List(32);
       final src = Random.secure();
-      for (var i = 0; i < 32; i++) seed[i] = src.nextInt(256);
+      for (var i = 0; i < 32; i++) {
+        seed[i] = src.nextInt(256);
+      }
       rng.seed(pc.KeyParameter(seed));
-      keyGen.init(pc.ParametersWithRandom(
-          pc.ECKeyGeneratorParameters(domainParams), rng));
+      keyGen.init(
+        pc.ParametersWithRandom(pc.ECKeyGeneratorParameters(domainParams), rng),
+      );
 
       final kpA = keyGen.generateKeyPair();
       final kpB = keyGen.generateKeyPair();
 
       final pubB = Uint8List.fromList(
-          (kpB.publicKey as pc.ECPublicKey).Q!.getEncoded(false));
+        (kpB.publicKey as pc.ECPublicKey).Q!.getEncoded(false),
+      );
 
-      final shared = ecdhSharedSecret(
-          kpA.privateKey as pc.ECPrivateKey, pubB);
+      final shared = ecdhSharedSecret(kpA.privateKey as pc.ECPrivateKey, pubB);
       expect(shared.length, equals(32));
     });
 
@@ -292,67 +304,89 @@ void main() {
       final rng = pc.FortunaRandom();
       final seed = Uint8List(32);
       final src = Random.secure();
-      for (var i = 0; i < 32; i++) seed[i] = src.nextInt(256);
+      for (var i = 0; i < 32; i++) {
+        seed[i] = src.nextInt(256);
+      }
       rng.seed(pc.KeyParameter(seed));
-      keyGen.init(pc.ParametersWithRandom(
-          pc.ECKeyGeneratorParameters(domainParams), rng));
+      keyGen.init(
+        pc.ParametersWithRandom(pc.ECKeyGeneratorParameters(domainParams), rng),
+      );
 
       final kpA = keyGen.generateKeyPair();
       final kpB = keyGen.generateKeyPair();
 
       final pubA = Uint8List.fromList(
-          (kpA.publicKey as pc.ECPublicKey).Q!.getEncoded(false));
+        (kpA.publicKey as pc.ECPublicKey).Q!.getEncoded(false),
+      );
       final pubB = Uint8List.fromList(
-          (kpB.publicKey as pc.ECPublicKey).Q!.getEncoded(false));
+        (kpB.publicKey as pc.ECPublicKey).Q!.getEncoded(false),
+      );
 
       final sharedAB = ecdhSharedSecret(
-          kpA.privateKey as pc.ECPrivateKey, pubB);
+        kpA.privateKey as pc.ECPrivateKey,
+        pubB,
+      );
       final sharedBA = ecdhSharedSecret(
-          kpB.privateKey as pc.ECPrivateKey, pubA);
+        kpB.privateKey as pc.ECPrivateKey,
+        pubA,
+      );
       expect(sharedAB, equals(sharedBA));
     });
   });
 
   group('end-to-end key derivation', () {
-    test('full flow: keygen → ECDH → derive SKReader/SKDevice → encrypt/decrypt', () {
-      final domainParams = pc.ECDomainParameters('prime256v1');
-      final keyGen = pc.ECKeyGenerator();
-      final rng = pc.FortunaRandom();
-      final seed = Uint8List(32);
-      final src = Random.secure();
-      for (var i = 0; i < 32; i++) seed[i] = src.nextInt(256);
-      rng.seed(pc.KeyParameter(seed));
-      keyGen.init(pc.ParametersWithRandom(
-          pc.ECKeyGeneratorParameters(domainParams), rng));
+    test(
+      'full flow: keygen → ECDH → derive SKReader/SKDevice → encrypt/decrypt',
+      () {
+        final domainParams = pc.ECDomainParameters('prime256v1');
+        final keyGen = pc.ECKeyGenerator();
+        final rng = pc.FortunaRandom();
+        final seed = Uint8List(32);
+        final src = Random.secure();
+        for (var i = 0; i < 32; i++) {
+          seed[i] = src.nextInt(256);
+        }
+        rng.seed(pc.KeyParameter(seed));
+        keyGen.init(
+          pc.ParametersWithRandom(
+            pc.ECKeyGeneratorParameters(domainParams),
+            rng,
+          ),
+        );
 
-      final readerKp = keyGen.generateKeyPair();
-      final deviceKp = keyGen.generateKeyPair();
+        final readerKp = keyGen.generateKeyPair();
+        final deviceKp = keyGen.generateKeyPair();
 
-      final readerPub = Uint8List.fromList(
-          (readerKp.publicKey as pc.ECPublicKey).Q!.getEncoded(false));
-      final devicePub = Uint8List.fromList(
-          (deviceKp.publicKey as pc.ECPublicKey).Q!.getEncoded(false));
+        final readerPub = Uint8List.fromList(
+          (readerKp.publicKey as pc.ECPublicKey).Q!.getEncoded(false),
+        );
+        final devicePub = Uint8List.fromList(
+          (deviceKp.publicKey as pc.ECPublicKey).Q!.getEncoded(false),
+        );
 
-      final sharedSecret = ecdhSharedSecret(
-          readerKp.privateKey as pc.ECPrivateKey, devicePub);
+        final sharedSecret = ecdhSharedSecret(
+          readerKp.privateKey as pc.ECPrivateKey,
+          devicePub,
+        );
 
-      final deCbor = Uint8List.fromList([0xa0]); // empty map placeholder
-      final readerKeyCose = buildCoseKey(readerPub);
-      final transcript = buildSessionTranscript(deCbor, readerKeyCose);
+        final deCbor = Uint8List.fromList([0xa0]); // empty map placeholder
+        final readerKeyCose = buildCoseKey(readerPub);
+        final transcript = buildSessionTranscript(deCbor, readerKeyCose);
 
-      final skReader = deriveSKReader(sharedSecret, transcript);
-      final skDevice = deriveSKDevice(sharedSecret, transcript);
+        final skReader = deriveSKReader(sharedSecret, transcript);
+        final skDevice = deriveSKDevice(sharedSecret, transcript);
 
-      // Encrypt with SKReader, verify decryptable
-      final iv = Uint8List(12);
-      final message = Uint8List.fromList(utf8.encode('device request'));
-      final ct = aesGcmEncrypt(skReader, iv, message);
-      final pt = aesGcmDecrypt(skReader, iv, ct);
-      expect(pt, equals(message));
+        // Encrypt with SKReader, verify decryptable
+        final iv = Uint8List(12);
+        final message = Uint8List.fromList(utf8.encode('device request'));
+        final ct = aesGcmEncrypt(skReader, iv, message);
+        final pt = aesGcmDecrypt(skReader, iv, ct);
+        expect(pt, equals(message));
 
-      // SKDevice derives differently
-      expect(skDevice, isNot(equals(skReader)));
-      expect(skDevice.length, equals(32));
-    });
+        // SKDevice derives differently
+        expect(skDevice, isNot(equals(skReader)));
+        expect(skDevice.length, equals(32));
+      },
+    );
   });
 }

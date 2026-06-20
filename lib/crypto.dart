@@ -17,11 +17,21 @@ Uint8List concat(List<Uint8List> arrays) {
 /// Encode bytes as a CBOR byte string (major type 2).
 Uint8List cborBstr(Uint8List bytes) {
   final len = bytes.length;
-  if (len < 24) return concat([Uint8List.fromList([0x40 | len]), bytes]);
-  if (len < 256) return concat([Uint8List.fromList([0x58, len]), bytes]);
+  if (len < 24)
+    return concat([
+      Uint8List.fromList([0x40 | len]),
+      bytes,
+    ]);
+  if (len < 256)
+    return concat([
+      Uint8List.fromList([0x58, len]),
+      bytes,
+    ]);
   if (len < 65536) {
-    return concat(
-        [Uint8List.fromList([0x59, len >> 8, len & 0xff]), bytes]);
+    return concat([
+      Uint8List.fromList([0x59, len >> 8, len & 0xff]),
+      bytes,
+    ]);
   }
   return concat([
     Uint8List.fromList([
@@ -29,15 +39,17 @@ Uint8List cborBstr(Uint8List bytes) {
       (len >> 24) & 0xff,
       (len >> 16) & 0xff,
       (len >> 8) & 0xff,
-      len & 0xff
+      len & 0xff,
     ]),
-    bytes
+    bytes,
   ]);
 }
 
 /// Wrap bytes in CBOR tag 24 (encoded CBOR data item).
-Uint8List tagged24(Uint8List bytes) =>
-    concat([Uint8List.fromList([0xd8, 0x18]), cborBstr(bytes)]);
+Uint8List tagged24(Uint8List bytes) => concat([
+  Uint8List.fromList([0xd8, 0x18]),
+  cborBstr(bytes),
+]);
 
 /// Derive a 32-byte salt by SHA-256 hashing a tagged session transcript.
 Uint8List saltFromTranscript(Uint8List sessionTranscript) {
@@ -67,8 +79,7 @@ Uint8List buildCoseKey(Uint8List pubKeyUncompressed) {
 
 /// Build the ISO 18013-5 SessionTranscript:
 /// [#6.24(deBytes), #6.24(eReaderKeyCose), null]
-Uint8List buildSessionTranscript(
-    Uint8List deBytes, Uint8List eReaderKeyCose) {
+Uint8List buildSessionTranscript(Uint8List deBytes, Uint8List eReaderKeyCose) {
   final bytes = <int>[];
   bytes.add(0x83); // array(3)
   bytes.addAll(tagged24(deBytes));
@@ -85,7 +96,10 @@ Uint8List hkdf(Uint8List ikm, Uint8List salt, Uint8List info, int length) {
   hmac.update(ikm, 0, ikm.length);
   hmac.doFinal(prk, 0);
   hmac.init(pc.KeyParameter(prk));
-  final infoWithCounter = concat([info, Uint8List.fromList([0x01])]);
+  final infoWithCounter = concat([
+    info,
+    Uint8List.fromList([0x01]),
+  ]);
   hmac.update(infoWithCounter, 0, infoWithCounter.length);
   final okm = Uint8List(32);
   hmac.doFinal(okm, 0);
@@ -93,16 +107,14 @@ Uint8List hkdf(Uint8List ikm, Uint8List salt, Uint8List info, int length) {
 }
 
 /// Derive the SKReader key from shared secret and session transcript.
-Uint8List deriveSKReader(
-    Uint8List sharedSecret, Uint8List sessionTranscript) {
+Uint8List deriveSKReader(Uint8List sharedSecret, Uint8List sessionTranscript) {
   final salt = saltFromTranscript(sessionTranscript);
   final info = Uint8List.fromList(utf8.encode('SKReader'));
   return hkdf(sharedSecret, salt, info, 32);
 }
 
 /// Derive the SKDevice key from shared secret and session transcript.
-Uint8List deriveSKDevice(
-    Uint8List sharedSecret, Uint8List sessionTranscript) {
+Uint8List deriveSKDevice(Uint8List sharedSecret, Uint8List sessionTranscript) {
   final salt = saltFromTranscript(sessionTranscript);
   final info = Uint8List.fromList(utf8.encode('SKDevice'));
   return hkdf(sharedSecret, salt, info, 32);
@@ -111,8 +123,7 @@ Uint8List deriveSKDevice(
 /// AES-GCM encrypt with 128-bit tag.
 Uint8List aesGcmEncrypt(Uint8List key, Uint8List iv, Uint8List plaintext) {
   final cipher = pc.GCMBlockCipher(pc.AESEngine());
-  final params =
-      pc.AEADParameters(pc.KeyParameter(key), 128, iv, Uint8List(0));
+  final params = pc.AEADParameters(pc.KeyParameter(key), 128, iv, Uint8List(0));
   cipher.init(true, params);
   return cipher.process(plaintext);
 }
@@ -120,15 +131,16 @@ Uint8List aesGcmEncrypt(Uint8List key, Uint8List iv, Uint8List plaintext) {
 /// AES-GCM decrypt with 128-bit tag.
 Uint8List aesGcmDecrypt(Uint8List key, Uint8List iv, Uint8List ciphertext) {
   final cipher = pc.GCMBlockCipher(pc.AESEngine());
-  final params =
-      pc.AEADParameters(pc.KeyParameter(key), 128, iv, Uint8List(0));
+  final params = pc.AEADParameters(pc.KeyParameter(key), 128, iv, Uint8List(0));
   cipher.init(false, params);
   return cipher.process(ciphertext);
 }
 
 /// Compute ECDH shared secret on P-256.
 Uint8List ecdhSharedSecret(
-    pc.ECPrivateKey ourPrivKey, Uint8List theirPubKeyBytes) {
+  pc.ECPrivateKey ourPrivKey,
+  Uint8List theirPubKeyBytes,
+) {
   final domainParams = pc.ECDomainParameters('prime256v1');
   final theirPubKey = domainParams.curve.decodePoint(theirPubKeyBytes)!;
   final theirKey = pc.ECPublicKey(theirPubKey, domainParams);
@@ -138,8 +150,7 @@ Uint8List ecdhSharedSecret(
   final secretHex = sharedSecret.toRadixString(16).padLeft(64, '0');
   final bytes = Uint8List(32);
   for (var i = 0; i < 32; i++) {
-    bytes[i] =
-        int.parse(secretHex.substring(i * 2, i * 2 + 2), radix: 16);
+    bytes[i] = int.parse(secretHex.substring(i * 2, i * 2 + 2), radix: 16);
   }
   return bytes;
 }
