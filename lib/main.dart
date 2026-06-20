@@ -8,6 +8,8 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:cbor/cbor.dart';
 import 'package:pointycastle/export.dart' as pc;
+import 'crypto.dart';
+import 'protocol.dart';
 
 void main() {
   runApp(const MyApp());
@@ -334,174 +336,6 @@ class _ScanScreenState extends State<ScanScreen> {
   }
 }
 
-// ── Crypto helpers ────────────────────────────────────────────────────────────
-
-Uint8List _concat(List<Uint8List> arrays) {
-  final total = arrays.fold(0, (s, a) => s + a.length);
-  final result = Uint8List(total);
-  var offset = 0;
-  for (final a in arrays) {
-    result.setAll(offset, a);
-    offset += a.length;
-  }
-  return result;
-}
-
-Uint8List _cborBstr(Uint8List bytes) {
-  final len = bytes.length;
-  if (len < 24) return _concat([Uint8List.fromList([0x40 | len]), bytes]);
-  if (len < 256) return _concat([Uint8List.fromList([0x58, len]), bytes]);
-  if (len < 65536)
-    return _concat(
-        [Uint8List.fromList([0x59, len >> 8, len & 0xff]), bytes]);
-  return _concat([
-    Uint8List.fromList([
-      0x5a,
-      (len >> 24) & 0xff,
-      (len >> 16) & 0xff,
-      (len >> 8) & 0xff,
-      len & 0xff
-    ]),
-    bytes
-  ]);
-}
-
-Uint8List _tagged24(Uint8List bytes) =>
-    _concat([Uint8List.fromList([0xd8, 0x18]), _cborBstr(bytes)]);
-
-Uint8List _saltFromTranscript(Uint8List sessionTranscript) {
-  final tagged = _tagged24(sessionTranscript);
-  final sha256 = pc.SHA256Digest();
-  final salt = Uint8List(32);
-  sha256.update(tagged, 0, tagged.length);
-  sha256.doFinal(salt, 0);
-  return salt;
-}
-
-// Build COSE_Key matching multipaz toCoseKey() format: {1:2, -1:1, -2:x, -3:y}
-Uint8List buildCoseKey(Uint8List pubKeyUncompressed) {
-  final x = pubKeyUncompressed.sublist(1, 33);
-  final y = pubKeyUncompressed.sublist(33, 65);
-  final bytes = <int>[];
-  bytes.add(0xa4); // map of 4
-  bytes.addAll([0x01, 0x02]); // 1: 2 (kty: EC2)
-  bytes.addAll([0x20, 0x01]); // -1: 1 (crv: P-256)
-  bytes.addAll([0x21, 0x58, 0x20]); // -2: bstr(32)
-  bytes.addAll(x);
-  bytes.addAll([0x22, 0x58, 0x20]); // -3: bstr(32)
-  bytes.addAll(y);
-  return Uint8List.fromList(bytes);
-}
-
-// SessionTranscript = [#6.24(deBytes), #6.24(eReaderKeyCose), handover]
-// For BLE: handover = null (0xf6)
-Uint8List buildSessionTranscript(
-    Uint8List deBytes, Uint8List eReaderKeyCose) {
-  final bytes = <int>[];
-  bytes.add(0x83); // array(3)
-  bytes.addAll(_tagged24(deBytes));
-  bytes.addAll(_tagged24(eReaderKeyCose));
-  bytes.add(0xf6); // null
-  return Uint8List.fromList(bytes);
-}
-
-Uint8List hkdf(Uint8List ikm, Uint8List salt, Uint8List info, int length) {
-  final hmac = pc.HMac(pc.SHA256Digest(), 64);
-  hmac.init(pc.KeyParameter(salt));
-  final prk = Uint8List(32);
-  hmac.update(ikm, 0, ikm.length);
-  hmac.doFinal(prk, 0);
-  hmac.init(pc.KeyParameter(prk));
-  final infoWithCounter =
-  _concat([info, Uint8List.fromList([0x01])]);
-  hmac.update(infoWithCounter, 0, infoWithCounter.length);
-  final okm = Uint8List(32);
-  hmac.doFinal(okm, 0);
-  return okm.sublist(0, length);
-}
-
-Uint8List deriveSKReader(
-    Uint8List sharedSecret, Uint8List sessionTranscript) {
-  final salt = _saltFromTranscript(sessionTranscript);
-  final info = Uint8List.fromList(utf8.encode('SKReader'));
-  return hkdf(sharedSecret, salt, info, 32);
-}
-
-Uint8List deriveSkDevice(
-    Uint8List sharedSecret, Uint8List sessionTranscript) {
-  final salt = _saltFromTranscript(sessionTranscript);
-  final info = Uint8List.fromList(utf8.encode('SKDevice'));
-  return hkdf(sharedSecret, salt, info, 32);
-}
-
-Uint8List aesGcmEncrypt(Uint8List key, Uint8List iv, Uint8List plaintext) {
-  final cipher = pc.GCMBlockCipher(pc.AESEngine());
-  final params =
-  pc.AEADParameters(pc.KeyParameter(key), 128, iv, Uint8List(0));
-  cipher.init(true, params);
-  return cipher.process(plaintext);
-}
-
-Uint8List aesGcmDecrypt(Uint8List key, Uint8List iv, Uint8List ciphertext) {
-  final cipher = pc.GCMBlockCipher(pc.AESEngine());
-  final params =
-  pc.AEADParameters(pc.KeyParameter(key), 128, iv, Uint8List(0));
-  cipher.init(false, params);
-  return cipher.process(ciphertext);
-}
-
-Uint8List ecdhSharedSecret(
-    pc.ECPrivateKey ourPrivKey, Uint8List theirPubKeyBytes) {
-  final domainParams = pc.ECDomainParameters('prime256v1');
-  final theirPubKey = domainParams.curve.decodePoint(theirPubKeyBytes)!;
-  final theirKey = pc.ECPublicKey(theirPubKey, domainParams);
-  final agreement = pc.ECDHBasicAgreement();
-  agreement.init(ourPrivKey);
-  final sharedSecret = agreement.calculateAgreement(theirKey);
-  final secretHex = sharedSecret.toRadixString(16).padLeft(64, '0');
-  final bytes = Uint8List(32);
-  for (var i = 0; i < 32; i++) {
-    bytes[i] =
-        int.parse(secretHex.substring(i * 2, i * 2 + 2), radix: 16);
-  }
-  return bytes;
-}
-
-Uint8List buildDeviceRequest() {
-  final itemsRequestBytes = Uint8List.fromList(cbor.encode(CborMap({
-    CborString('docType'): CborString('org.iso.18013.5.1.mDL'),
-    CborString('nameSpaces'): CborMap({
-      CborString('org.iso.18013.5.1'): CborMap({
-        CborString('given_name'): const CborBool(false),
-        CborString('family_name'): const CborBool(false),
-        CborString('birth_date'): const CborBool(false),
-        CborString('document_number'): const CborBool(false),
-        CborString('issuing_country'): const CborBool(false),
-        CborString('expiry_date'): const CborBool(false),
-      }),
-    }),
-  })));
-  final docRequest = CborMap({
-    CborString('itemsRequest'): CborBytes(itemsRequestBytes, tags: [24]),
-  });
-  final deviceRequest = CborMap({
-    CborString('version'): CborString('1.0'),
-    CborString('docRequests'): CborList([docRequest]),
-  });
-  return Uint8List.fromList(cbor.encode(deviceRequest));
-}
-
-// SessionEstablishment matching multipaz format:
-// {"eReaderKey": #6.24(bstr(eReaderKeyCose)), "data": bstr(encryptedRequest)}
-Uint8List buildSessionEstablishment(
-    Uint8List eReaderKeyCose, Uint8List encryptedRequest) {
-  final se = CborMap({
-    CborString('eReaderKey'): CborBytes(eReaderKeyCose, tags: [24]),
-    CborString('data'): CborBytes(encryptedRequest),
-  });
-  return Uint8List.fromList(cbor.encode(se));
-}
-
 // ── Connect Screen ────────────────────────────────────────────────────────────
 
 class ConnectScreen extends StatefulWidget {
@@ -547,85 +381,12 @@ class _ConnectScreenState extends State<ConnectScreen> {
     }
   }
 
-  String _extractUuid(Uint8List deBytes) {
-    try {
-      final decoded = cbor.decode(deBytes) as CborMap;
-      final connMethods = decoded[const CborSmallInt(2)] as CborList?;
-      if (connMethods == null) throw Exception('No connection methods');
-      for (final method in connMethods) {
-        final m = method as CborList;
-        if ((m[0] as CborSmallInt).value == 2) {
-          final options = m[2] as CborMap;
-          for (final key in [10, 11]) {
-            final uuidItem = options[CborSmallInt(key)];
-            if (uuidItem != null) {
-              final uuidBytes =
-              Uint8List.fromList((uuidItem as CborBytes).bytes);
-              final h = uuidBytes
-                  .map((b) => b.toRadixString(16).padLeft(2, '0'))
-                  .join();
-              return '${h.substring(0, 8)}-${h.substring(8, 12)}-'
-                  '${h.substring(12, 16)}-${h.substring(16, 20)}-'
-                  '${h.substring(20)}';
-            }
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint('CBOR parse: $e');
-    }
-    throw Exception('UUID not found');
-  }
-
-  Uint8List _extractEDeviceKey(Uint8List deBytes) {
-    final decoded = cbor.decode(deBytes) as CborMap;
-    final security = decoded[const CborSmallInt(1)] as CborList;
-    final coseKeyBytes =
-    Uint8List.fromList((security[1] as CborBytes).bytes);
-    final coseKey = cbor.decode(coseKeyBytes) as CborMap;
-    final x = Uint8List.fromList(
-        (coseKey[CborSmallInt(-2)] as CborBytes).bytes);
-    final y = Uint8List.fromList(
-        (coseKey[CborSmallInt(-3)] as CborBytes).bytes);
-    return _concat([Uint8List.fromList([0x04]), x, y]);
-  }
-
-  Map<String, String> _parseCredentials(Uint8List decrypted) {
-    final fields = <String, String>{};
-    final deviceResponse = cbor.decode(decrypted) as CborMap;
-    final documents =
-    deviceResponse[CborString('documents')] as CborList?;
-    if (documents == null) return fields;
-    for (final doc in documents) {
-      final docMap = doc as CborMap;
-      final issuerSigned =
-      docMap[CborString('issuerSigned')] as CborMap?;
-      final nameSpaces =
-      issuerSigned?[CborString('nameSpaces')] as CborMap?;
-      nameSpaces?.entries.forEach((ns) {
-        final items = ns.value as CborList?;
-        items?.forEach((item) {
-          try {
-            final itemBytes = (item as CborBytes).bytes;
-            final itemMap =
-            cbor.decode(Uint8List.fromList(itemBytes)) as CborMap;
-            final key =
-            itemMap[CborString('elementIdentifier')].toString();
-            final value = itemMap[CborString('elementValue')];
-            fields[key] = value.toString();
-          } catch (_) {}
-        });
-      });
-    }
-    return fields;
-  }
-
   Future<void> _connect() async {
     try {
       _setStatus('Reading QR code', 'Parsing device engagement...');
-      _targetUuid = _extractUuid(widget.deBytes);
+      _targetUuid = extractUuid(widget.deBytes);
       debugPrint('deBytes: ${widget.deBytes.map((b) => b.toRadixString(16).padLeft(2,'0')).join()}');
-      final eDeviceKeyBytes = _extractEDeviceKey(widget.deBytes);
+      final eDeviceKeyBytes = extractEDeviceKey(widget.deBytes);
 
       _setStatus('Generating keys', 'Creating ephemeral reader key...');
       final domainParams = pc.ECDomainParameters('prime256v1');
@@ -670,7 +431,7 @@ class _ConnectScreenState extends State<ConnectScreen> {
       _setStatus('Advertising', 'Waiting for holder\'s device...');
 
       debugPrint('sharedSecret: ${sharedSecret.map((b) => b.toRadixString(16).padLeft(2,'0')).join()}');
-      debugPrint('salt: ${_saltFromTranscript(sessionTranscript).map((b) => b.toRadixString(16).padLeft(2,'0')).join()}');
+      debugPrint('salt: ${saltFromTranscript(sessionTranscript).map((b) => b.toRadixString(16).padLeft(2,'0')).join()}');
       debugPrint('SKReader: ${skReader.map((b) => b.toRadixString(16).padLeft(2,'0')).join()}');
       debugPrint('IV: ${iv.map((b) => b.toRadixString(16).padLeft(2,'0')).join()}');
       debugPrint('encryptedRequest first 32: ${encryptedRequest.sublist(0,32).map((b) => b.toRadixString(16).padLeft(2,'0')).join()}');
@@ -708,7 +469,7 @@ class _ConnectScreenState extends State<ConnectScreen> {
           final encryptedData = Uint8List.fromList(
               (sessionDataMap[CborString('data')] as CborBytes).bytes);
 
-          final skDevice = deriveSkDevice(sharedSecret, sessionTranscript);
+          final skDevice = deriveSKDevice(sharedSecret, sessionTranscript);
 
           final ivCombinations = [
             [0, 0], [0, 1], [1, 0], [1, 1],
@@ -733,7 +494,7 @@ class _ConnectScreenState extends State<ConnectScreen> {
             throw Exception('Decryption failed — try scanning again');
           }
 
-          final fields = _parseCredentials(plain);
+          final fields = parseCredentials(plain);
           if (fields.isEmpty) {
             throw Exception('No credential fields found');
           }

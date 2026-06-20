@@ -1,21 +1,44 @@
 # SIROS Verifier App
 
-A native proximity verifier application built with Flutter, implementing the
-ISO 18013-5 mDL device engagement and data retrieval flow over BLE.
+[![CI](https://github.com/sirosfoundation/siros-verifier-app/actions/workflows/ci.yml/badge.svg)](https://github.com/sirosfoundation/siros-verifier-app/actions/workflows/ci.yml)
+[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=sirosfoundation_siros-verifier-app&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=sirosfoundation_siros-verifier-app)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/sirosfoundation/siros-verifier-app/badge)](https://scorecard.dev/viewer/?uri=github.com/sirosfoundation/siros-verifier-app)
+[![License](https://img.shields.io/badge/License-BSD_2--Clause-blue.svg)](LICENSE)
 
-## Overview
+A native proximity verifier for **ISO 18013-5 mobile driving licences (mDL)**,
+built with Flutter. Scans a QR code from the holder's wallet, establishes a
+BLE session, and retrieves credential attributes — entirely offline.
 
-The SIROS Verifier scans a QR code presented by a wallet holder to initiate an
-mDL proximity presentation. It establishes a BLE connection with the wallet
-device, performs the ISO 18013-5 session establishment, and retrieves the
-requested credential data.
+## How it works
 
-### Key Features
+```
+Holder wallet                        SIROS Verifier
+─────────────                        ──────────────
+Display QR (mdoc:…)  ──────────────▶  Scan & parse device engagement
+                     ◀── BLE ───────  Advertise UUID, connect
+                     ◀──────────────  Send SessionEstablishment (ECDH + AES-GCM)
+Return DeviceResponse ─────────────▶  Decrypt & display credential
+```
 
-- **QR Code scanning** — reads the `mdoc` device engagement structure
-- **BLE central role** — discovers and connects to the wallet peripheral
-- **ISO 18013-5 session** — HKDF key derivation, CBOR session transcript
-- **mDL data retrieval** — requests and displays driving licence attributes
+1. **QR scan** — decodes the `mdoc:` URI into a CBOR device engagement structure
+2. **Key agreement** — generates an ephemeral P-256 key pair, performs ECDH with the holder's `eDeviceKey`
+3. **Session keys** — derives `SKReader` and `SKDevice` via HKDF-SHA256
+4. **BLE transport** — advertises the service UUID from the engagement, connects as central
+5. **Credential request** — encrypts a `DeviceRequest` with AES-128-GCM and sends it
+6. **Display** — decrypts the `DeviceResponse` and shows the mDL attributes
+
+## Architecture
+
+```
+lib/
+├── main.dart       # UI: SplashScreen → HomeScreen → ScanScreen → ConnectScreen → ResultScreen
+├── crypto.dart     # Crypto primitives: ECDH, HKDF, AES-GCM, COSE_Key, CBOR encoding
+└── protocol.dart   # ISO 18013-5 protocol: DeviceRequest, SessionEstablishment, parsing
+
+android/app/src/main/kotlin/com/example/siros/
+├── MainActivity.kt     # Flutter platform channel bridge for BLE
+└── BleScanService.kt   # Foreground BLE scan service
+```
 
 ## Prerequisites
 
@@ -23,7 +46,7 @@ requested credential data.
 - Android SDK (API 36 / compileSdk 36)
 - JDK 17
 
-## Getting Started
+## Quick start
 
 ```bash
 flutter pub get
@@ -33,18 +56,15 @@ flutter run
 ## Testing
 
 ```bash
-flutter test
-flutter test --coverage
+flutter test                  # unit + widget tests
+flutter test --coverage       # with lcov coverage report
 ```
 
 ## Building
 
 ```bash
-# Debug APK
-flutter build apk --debug
-
-# Release APK (requires signing config)
-flutter build apk --release
+flutter build apk --debug    # debug APK
+flutter build apk --release  # release APK (requires signing config)
 ```
 
 ## License
