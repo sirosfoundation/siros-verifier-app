@@ -31,11 +31,11 @@ dependencies:
   flutter:
     sdk: flutter
   mobile_scanner: ^5.0.0
-  permission_handler: ^11.3.0
-  flutter_blue_plus: ^1.32.0
+  permission_handler: ^13.0.2
+  flutter_blue_plus: ^2.3.12
   flutter_reactive_ble: ^5.5.0
   cbor: ^6.3.0
-  pointycastle: ^3.9.1
+  pointycastle: ^4.0.0
 
 
 dev_dependencies:
